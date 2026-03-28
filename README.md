@@ -3,7 +3,7 @@
 Interactive dashboard cross-auditing IUCN Red List threatened species 
 classifications against GBIF occurrence records.
 
-**Live app:** [link coming]
+**Live app:** https://nealdoran-biodiversity-gap-audit.streamlit.app/
 
 ## What This Shows
 61.8% of Critically Endangered species have fewer than 10 documented 
