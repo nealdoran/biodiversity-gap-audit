@@ -150,8 +150,11 @@ if 'query_count' not in st.session_state:
     st.session_state.query_count = 0
 MAX_Q = 20
 
-# Example question buttons
-st.markdown("**Try an example:**")
+# Example question buttons using session state
+if 'question_text' not in st.session_state:
+    st.session_state.question_text = ""
+
+st.markdown("**Try an example — click to load into box:**")
 examples = [
     "Which critically endangered amphibians have zero occurrence records?",
     "What percentage of critically endangered mammals are data-deficient?",
@@ -159,13 +162,18 @@ examples = [
     "How many critically endangered species are freshwater versus terrestrial?",
 ]
 ec1, ec2 = st.columns(2)
-clicked = None
 for i, ex in enumerate(examples):
     if (ec1 if i%2==0 else ec2).button(f"💬 {ex}", key=f"ex{i}"):
-        clicked = ex
+        st.session_state.question_text = ex
+        st.rerun()
 
-question = st.text_input("Your question:", value=clicked or "",
+question = st.text_input("Your question:",
+                         value=st.session_state.question_text,
                          placeholder="e.g. Which fish have the fewest occurrence records?")
+st.session_state.question_text = question
+
+st.markdown("---")
+answer_area = st.empty()
 
 if st.button("🔍 Ask", type="primary") and question.strip():
     if st.session_state.query_count >= MAX_Q:
