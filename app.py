@@ -2,13 +2,14 @@
 Global Biodiversity Data Gap Audit — with RAG Query Layer
 Built by Neal Doran, Ph.D. | Bio Database v2
 Run: streamlit run app_rag.py
-Requires: .streamlit/secrets.toml containing: GEMINI_API_KEY = "your_key_here"
+Requires: .streamlit/secrets.toml containing: ANTHROPIC_API_KEY = 'your_key_here'
 """
 
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import os, requests
+import anthropic
 
 st.set_page_config(page_title="Biodiversity Data Gap Audit", page_icon="🌿",
                    layout="wide", initial_sidebar_state="expanded")
@@ -180,9 +181,9 @@ if st.button("🔍 Ask", type="primary") and question.strip():
         st.warning(f"Session limit of {MAX_Q} queries reached. Refresh to reset.")
     else:
         try:
-            api_key = st.secrets["GEMINI_API_KEY"]
+            api_key = st.secrets["ANTHROPIC_API_KEY"]
         except Exception:
-            st.error("Add GEMINI_API_KEY to .streamlit/secrets.toml")
+            st.error("Add ANTHROPIC_API_KEY to .streamlit/secrets.toml")
             st.stop()
 
         col_info = """
@@ -201,19 +202,15 @@ DataFrame 'df' columns:
 Return ONLY executable Python. No markdown. No backticks. Assign result to variable 'result'.
 Question: {question}"""
 
-        GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
-
         with st.spinner("Querying..."):
             try:
-                r1 = requests.post(
-                    f"{GEMINI_URL}?key={api_key}",
-                    headers={"Content-Type":"application/json"},
-                    json={"contents":[{"parts":[{"text":p1}]}]}, timeout=15)
-                r1.raise_for_status()
-                code = r1.json()['candidates'][0]['content']['parts'][0]['text'].strip().strip('`').replace('python','').strip()
-            except requests.exceptions.HTTPError as e:
-                st.error(f"Query generation failed: HTTP {r1.status_code} — {r1.reason}")
-                st.stop()
+                client = anthropic.Anthropic(api_key=api_key)
+                r1 = client.messages.create(
+                    model="claude-haiku-4-5-20251001",
+                    max_tokens=1024,
+                    messages=[{"role": "user", "content": p1}]
+                )
+                code = r1.content[0].text.strip().strip('`').replace('python','').strip()
             except Exception as e:
                 st.error("Query generation failed. Please try again in a moment.")
                 st.stop()
@@ -243,14 +240,12 @@ Result: {result_str[:2000]}"""
 
         with st.spinner("Summarizing..."):
             try:
-                r2 = requests.post(
-                    f"{GEMINI_URL}?key={api_key}",
-                    headers={"Content-Type":"application/json"},
-                    json={"contents":[{"parts":[{"text":p2}]}]}, timeout=15)
-                r2.raise_for_status()
-                answer = r2.json()['candidates'][0]['content']['parts'][0]['text'].strip()
-            except requests.exceptions.HTTPError as e:
-                answer = f"Summary unavailable: HTTP {r2.status_code} — {r2.reason}"
+                r2 = client.messages.create(
+                    model="claude-haiku-4-5-20251001",
+                    max_tokens=1024,
+                    messages=[{"role": "user", "content": p2}]
+                )
+                answer = r2.content[0].text.strip()
             except Exception as e:
                 answer = "Summary unavailable. Please try again."
 
@@ -264,5 +259,5 @@ Result: {result_str[:2000]}"""
 # ── Footer ────────────────────────────────────────────────────────
 st.divider()
 st.markdown("<footer>Data: IUCN Red List, GBIF &nbsp;|&nbsp; 26M records &nbsp;|&nbsp; "
-            "AI: Google Gemini Flash &nbsp;|&nbsp; Built by Neal Doran, Ph.D.</footer>",
+            "AI: Anthropic Claude Haiku &nbsp;|&nbsp; Built by Neal Doran, Ph.D.</footer>",
             unsafe_allow_html=True)
