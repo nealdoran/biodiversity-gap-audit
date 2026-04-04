@@ -186,7 +186,7 @@ if st.button("🔍 Ask", type="primary") and question.strip():
             st.error("Add ANTHROPIC_API_KEY to .streamlit/secrets.toml")
             st.stop()
 
-           col_info = """
+        col_info = """
 DataFrame 'df' columns:
 - sci_name (str): scientific name (e.g. 'Panthera tigris')
 - category (str): IUCN Red List category. Values are ONLY: 'CR' (Critically Endangered), 'EN' (Endangered), 'VU' (Vulnerable), 'NT' (Near Threatened). NOTE: This dataset does NOT contain 'DD' (Data Deficient) or 'LC' (Least Concern) species. If asked about data-deficient species, explain that IUCN Data Deficient (DD) species are not included in this dataset, which only covers CR/EN/VU/NT species.
