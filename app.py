@@ -155,7 +155,7 @@ MAX_Q = 20
 if 'question_text' not in st.session_state:
     st.session_state.question_text = ""
 
-st.markdown("**Try an example — click to load into box:**")
+st.markdown("**Try an example - click to load into box:**")
 examples = [
     "Which critically endangered amphibians have zero occurrence records?",
     "What percentage of critically endangered mammals are data-deficient?",
@@ -198,7 +198,7 @@ if st.button("🔍 Ask", type="primary") and question.strip():
 - family (str): taxonomic family (UPPERCASE)
 - genus (str): taxonomic genus (title case)
 - population_trend (str): 'Decreasing', 'Stable', 'Increasing', or 'Unknown'
-- marine (int): 1 or 0. WARNING: habitat columns currently contain known errors — flag this in results.
+- marine (int): 1 or 0. WARNING: habitat columns currently contain known errors - flag this in results.
 - freshwater (int): 1 or 0. WARNING: habitat columns currently contain known errors.
 - terrestrial (int): 1 or 0. WARNING: habitat columns currently contain known errors.
 - total_occurrences (int): GBIF occurrence record count. 0 = no location data exists.
@@ -236,7 +236,7 @@ result = "This dataset contains only CR/EN/VU/NT species. IUCN Data Deficient (D
 Q: "Freshwater vs terrestrial CR species"
 CODE:
 cr = df[df['category'] == 'CR']
-result = f"NOTE: Habitat flags are under review for data quality. Current values — Freshwater: {(cr['freshwater']==1).sum()}, Terrestrial: {(cr['terrestrial']==1).sum()}, Marine: {(cr['marine']==1).sum()}"
+result = f"NOTE: Habitat flags are under review for data quality. Current values - Freshwater: {(cr['freshwater']==1).sum()}, Terrestrial: {(cr['terrestrial']==1).sum()}, Marine: {(cr['marine']==1).sum()}"
  
 Q: "How many species in each IUCN category?"
 CODE:
@@ -297,7 +297,7 @@ Question: {question}"""
             st.caption(f"Generated code: `{code}`"); st.stop()
 
         p2 = f"""Summarize this data result in 2-4 plain English sentences for a general audience.
-Be specific — use actual numbers and species names. Do not say 'dataframe' or 'query'.
+Be specific - use actual numbers and species names. Do not say 'dataframe' or 'query'.
 Question: {question}
 Result: {result_str[:2000]}"""
 
