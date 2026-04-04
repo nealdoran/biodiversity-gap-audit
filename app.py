@@ -186,7 +186,7 @@ if st.button("🔍 Ask", type="primary") and question.strip():
             st.error("Add ANTHROPIC_API_KEY to .streamlit/secrets.toml")
             st.stop()
 
-       col_info = """DataFrame 'df' columns and EXACT valid values:
+        col_info = """DataFrame 'df' columns and EXACT valid values:
 - sci_name (str): scientific name, e.g. 'Panthera tigris'
 - category (str): IUCN category. ONLY these values exist: 'CR', 'EN', 'VU', 'NT'
   NEVER use 'Critically Endangered' or other spelled-out forms. ALWAYS use: 'CR', 'EN', 'VU', 'NT'
