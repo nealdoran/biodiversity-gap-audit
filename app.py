@@ -159,7 +159,7 @@ st.markdown("**Try an example — click to load into box:**")
 examples = [
     "Which critically endangered amphibians have zero occurrence records?",
     "What percentage of critically endangered mammals are data-deficient?",
-    "List the top 10 most data-deficient reptile species",
+    "Which reptile families have the most species with zero occurrence records?",
     "How many critically endangered species are freshwater versus terrestrial?",
 ]
 ec1, ec2 = st.columns(2)
