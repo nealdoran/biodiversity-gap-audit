@@ -186,32 +186,82 @@ if st.button("🔍 Ask", type="primary") and question.strip():
             st.error("Add ANTHROPIC_API_KEY to .streamlit/secrets.toml")
             st.stop()
 
-        col_info = """
-DataFrame 'df' columns:
-- sci_name (str): scientific name (e.g. 'Panthera tigris')
-- category (str): IUCN Red List category. Values are ONLY: 'CR' (Critically Endangered), 'EN' (Endangered), 'VU' (Vulnerable), 'NT' (Near Threatened). NOTE: This dataset does NOT contain 'DD' (Data Deficient) or 'LC' (Least Concern) species. If asked about data-deficient species, explain that IUCN Data Deficient (DD) species are not included in this dataset, which only covers CR/EN/VU/NT species.
-- class (str): taxonomic class. Common values: 'Mammalia', 'Amphibia', 'Actinopterygii', 'Reptilia', 'Aves', 'Gastropoda', 'Insecta', etc.
-- order_name (str): taxonomic order
-- family (str): taxonomic family
-- genus (str): taxonomic genus
+       col_info = """DataFrame 'df' columns and EXACT valid values:
+- sci_name (str): scientific name, e.g. 'Panthera tigris'
+- category (str): IUCN category. ONLY these values exist: 'CR', 'EN', 'VU', 'NT'
+  NEVER use 'Critically Endangered' or other spelled-out forms. ALWAYS use: 'CR', 'EN', 'VU', 'NT'
+  There are NO 'DD' or 'LC' species in this dataset.
+- class (str): taxonomic class in title case. Valid values include:
+  'MAMMALIA', 'AMPHIBIA', 'ACTINOPTERYGII', 'REPTILIA', 'AVES', 'GASTROPODA', 'INSECTA', 'MAGNOLIOPSIDA', etc.
+  WARNING: class values are UPPERCASE. Always use .str.upper() or uppercase strings when filtering.
+- order_name (str): taxonomic order (UPPERCASE)
+- family (str): taxonomic family (UPPERCASE)
+- genus (str): taxonomic genus (title case)
 - population_trend (str): 'Decreasing', 'Stable', 'Increasing', or 'Unknown'
-- marine (int): 1 = marine species, 0 = not marine
-- freshwater (int): 1 = freshwater species, 0 = not freshwater
-- terrestrial (int): 1 = terrestrial species, 0 = not terrestrial
-  NOTE: A species can belong to MULTIPLE habitat types (e.g. marine=1 AND freshwater=1).
-  To count species by habitat: terrestrial_count = (df['terrestrial']==1).sum(); freshwater_count = (df['freshwater']==1).sum(); marine_count = (df['marine']==1).sum()
-  To compare habitats, compute each separately and present side by side.
-- total_occurrences (int): number of GBIF occurrence records. 0 means no location data exists.
-
-IMPORTANT RULES:
-1. This dataset contains ONLY CR/EN/VU/NT species. There are NO 'DD' (Data Deficient) entries. If asked about DD species, set result = "This dataset covers CR, EN, VU, and NT species only. IUCN Data Deficient (DD) species are not included. Consult the full IUCN Red List for DD species."
-2. Before any division, always check that the denominator is not zero. Use: denominator = len(subset); result = round(numerator/denominator*100, 1) if denominator > 0 else "No matching species found."
-3. For habitat comparisons (marine vs freshwater vs terrestrial), always query each habitat column separately and combine results.
+- marine (int): 1 or 0. WARNING: habitat columns currently contain known errors — flag this in results.
+- freshwater (int): 1 or 0. WARNING: habitat columns currently contain known errors.
+- terrestrial (int): 1 or 0. WARNING: habitat columns currently contain known errors.
+- total_occurrences (int): GBIF occurrence record count. 0 = no location data exists.
+ 
+CRITICAL RULES:
+1. Category values are ALWAYS two-letter codes: 'CR', 'EN', 'VU', 'NT'. Never spell them out.
+2. Class/order/family values are UPPERCASE in the data.
+3. Before any division, check denominator != 0.
+4. If asked about DD (Data Deficient) species: set result = "This dataset contains only CR/EN/VU/NT species. Data Deficient (DD) species are not included."
+5. If asked about habitat (marine/freshwater/terrestrial): include a note that habitat flags are under review for data quality.
 """
-
-
-        p1 = f"""Convert this question to pandas code against DataFrame 'df'.
+ 
+        few_shot_examples = """
+EXAMPLE QUERIES AND CORRECT CODE:
+ 
+Q: "Top 10 CR mammals with fewest GBIF records"
+CODE:
+subset = df[(df['category'] == 'CR') & (df['class'] == 'MAMMALIA')]
+result = subset.nsmallest(10, 'total_occurrences')[['sci_name', 'total_occurrences']]
+ 
+Q: "CR amphibians with zero occurrences"
+CODE:
+subset = df[(df['category'] == 'CR') & (df['class'] == 'AMPHIBIA') & (df['total_occurrences'] == 0)]
+result = subset[['sci_name', 'family', 'total_occurrences']]
+ 
+Q: "Reptile families with most zero-occurrence species"
+CODE:
+cr_rept = df[(df['category'] == 'CR') & (df['class'] == 'REPTILIA') & (df['total_occurrences'] == 0)]
+result = cr_rept.groupby('family').size().sort_values(ascending=False).head(10)
+ 
+Q: "What percentage of CR mammals are data-deficient?"
+CODE:
+result = "This dataset contains only CR/EN/VU/NT species. IUCN Data Deficient (DD) species are not included in this dataset."
+ 
+Q: "Freshwater vs terrestrial CR species"
+CODE:
+cr = df[df['category'] == 'CR']
+result = f"NOTE: Habitat flags are under review for data quality. Current values — Freshwater: {(cr['freshwater']==1).sum()}, Terrestrial: {(cr['terrestrial']==1).sum()}, Marine: {(cr['marine']==1).sum()}"
+ 
+Q: "How many species in each IUCN category?"
+CODE:
+result = df['category'].value_counts()
+ 
+Q: "Average GBIF records per class for CR species"
+CODE:
+cr = df[df['category'] == 'CR']
+result = cr.groupby('class')['total_occurrences'].mean().sort_values(ascending=False).round(1)
+"""
+ 
+        p1 = f"""You are a pandas code generator. Convert the user's question into executable Python code.
+ 
 {col_info}
+ 
+{few_shot_examples}
+ 
+INSTRUCTIONS:
+- Return ONLY executable Python code. No markdown, no backticks, no explanation.
+- Assign the final answer to a variable called 'result'.
+- The DataFrame is already loaded as 'df'. Do not reload or redefine it.
+- Use the EXACT column values shown above (e.g., 'CR' not 'Critically Endangered', 'MAMMALIA' not 'Mammalia').
+- Follow the patterns in the examples above.
+ 
+Question: {question}"""
 Return ONLY executable Python. No markdown. No backticks. Assign result to variable 'result'.
 Question: {question}"""
 
