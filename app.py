@@ -160,7 +160,7 @@ examples = [
     "Which critically endangered amphibians have zero occurrence records?",
     "What percentage of critically endangered mammals are data-deficient?",
     "Which reptile families have the most species with zero occurrence records?",
-    "How many critically endangered species are freshwater versus terrestrial?",
+    "What are the top 10 critically endangered mammals with the fewest GBIF records?",
 ]
 ec1, ec2 = st.columns(2)
 for i, ex in enumerate(examples):
