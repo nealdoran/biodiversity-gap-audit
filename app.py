@@ -186,16 +186,29 @@ if st.button("🔍 Ask", type="primary") and question.strip():
             st.error("Add ANTHROPIC_API_KEY to .streamlit/secrets.toml")
             st.stop()
 
-        col_info = """
+           col_info = """
 DataFrame 'df' columns:
-- sci_name (str): scientific name
-- category (str): 'CR','EN','VU','NT'
-- class (str): e.g. 'Mammalia','Amphibia','Actinopterygii','Reptilia','Aves'
-- order_name, family, genus (str)
-- population_trend (str): 'Decreasing','Stable','Increasing','Unknown'
-- marine, freshwater, terrestrial (int): 1 or 0
-- total_occurrences (int): GBIF records (0 = no location data)
+- sci_name (str): scientific name (e.g. 'Panthera tigris')
+- category (str): IUCN Red List category. Values are ONLY: 'CR' (Critically Endangered), 'EN' (Endangered), 'VU' (Vulnerable), 'NT' (Near Threatened). NOTE: This dataset does NOT contain 'DD' (Data Deficient) or 'LC' (Least Concern) species. If asked about data-deficient species, explain that IUCN Data Deficient (DD) species are not included in this dataset, which only covers CR/EN/VU/NT species.
+- class (str): taxonomic class. Common values: 'Mammalia', 'Amphibia', 'Actinopterygii', 'Reptilia', 'Aves', 'Gastropoda', 'Insecta', etc.
+- order_name (str): taxonomic order
+- family (str): taxonomic family
+- genus (str): taxonomic genus
+- population_trend (str): 'Decreasing', 'Stable', 'Increasing', or 'Unknown'
+- marine (int): 1 = marine species, 0 = not marine
+- freshwater (int): 1 = freshwater species, 0 = not freshwater
+- terrestrial (int): 1 = terrestrial species, 0 = not terrestrial
+  NOTE: A species can belong to MULTIPLE habitat types (e.g. marine=1 AND freshwater=1).
+  To count species by habitat: terrestrial_count = (df['terrestrial']==1).sum(); freshwater_count = (df['freshwater']==1).sum(); marine_count = (df['marine']==1).sum()
+  To compare habitats, compute each separately and present side by side.
+- total_occurrences (int): number of GBIF occurrence records. 0 means no location data exists.
+
+IMPORTANT RULES:
+1. This dataset contains ONLY CR/EN/VU/NT species. There are NO 'DD' (Data Deficient) entries. If asked about DD species, set result = "This dataset covers CR, EN, VU, and NT species only. IUCN Data Deficient (DD) species are not included. Consult the full IUCN Red List for DD species."
+2. Before any division, always check that the denominator is not zero. Use: denominator = len(subset); result = round(numerator/denominator*100, 1) if denominator > 0 else "No matching species found."
+3. For habitat comparisons (marine vs freshwater vs terrestrial), always query each habitat column separately and combine results.
 """
+
 
         p1 = f"""Convert this question to pandas code against DataFrame 'df'.
 {col_info}
