@@ -296,10 +296,7 @@ Question: {question}"""
             st.error(f"Execution error: {e}")
             st.caption(f"Generated code: `{code}`"); st.stop()
 
-        p2 = f"""Summarize this data result in 2-4 plain English sentences for a general audience.
-Be specific - use actual numbers and species names. Do not say 'dataframe' or 'query'.
-Question: {question}
-Result: {result_str[:2000]}"""
+        p2 = f"Summarize this data result in 2-4 plain English sentences for a general audience.\nBe specific - use actual numbers and species names. Do not say 'dataframe' or 'query'.\nQuestion: {question}\nResult: {result_str[:2000]}"
 
         with st.spinner("Summarizing..."):
             try:
