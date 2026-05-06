@@ -8,7 +8,7 @@ classifications against GBIF occurrence records.
 ## What This Shows
 61.8% of Critically Endangered species have fewer than 10 documented 
 occurrence records in GBIF. This app makes that data gap visible and 
-explorable across taxonomic classes and threat categories.
+explorable across taxonomic classes and threat categories. A natural-language query interface over the database is in development, allowing non-technical users to interrogate biodiversity data without SQL
 
 ## Data Sources
 - IUCN Red List (50,576 species)
